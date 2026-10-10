@@ -6,4 +6,16 @@
 #include "tegra194-p3509-0000+p3668-0000.dts"
 
 / {
+	firmware {
+		android {
+			compatible = "android,firmware";
+			hardware = "rey";
+			boot_devices = "bus@0/3400000.mmc";
+		};
+	};
+};
+
+/* DDR50 reads fail on this slot; SDR50 works. */
+&sdmmc1 {
+	/delete-property/ sd-uhs-ddr50;
 };
