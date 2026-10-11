@@ -11,6 +11,12 @@
 			compatible = "android,firmware";
 			hardware = "rey";
 			boot_devices = "bus@0/3400000.mmc";
+
+			/* fstab uses plain "avb"; first-stage init needs these to find vbmeta_<slot>. */
+			vbmeta {
+				compatible = "android,vbmeta";
+				parts = "vbmeta,vbmeta_system,boot,vendor_boot";
+			};
 		};
 	};
 };
@@ -18,4 +24,17 @@
 /* DDR50 reads fail on this slot; SDR50 works. */
 &sdmmc1 {
 	/delete-property/ sd-uhs-ddr50;
+};
+
+/*
+ * Run QSPI with DMA like L4T does. In PIO mode spi-tegra210-quad corrupts
+ * page programs (combined sequence drops the first 5 data bytes; separate
+ * transfers put opcode+address in the data phase), which breaks the SMD
+ * writes of the boot control HAL.
+ */
+&{/bus@0/spi@3270000} {
+	iommus = <&smmu TEGRA194_SID_GPCDMA_0>;
+	dma-coherent;
+	dmas = <&gpcdma 5>, <&gpcdma 5>;
+	dma-names = "rx", "tx";
 };
